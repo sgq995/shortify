@@ -1,5 +1,6 @@
-use actix_web::{get, post, App, HttpResponse, HttpServer, Responder, web};
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use serde::Deserialize;
+use sha2::{Digest, Sha256};
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -13,7 +14,9 @@ struct UrlFormData {
 
 #[post("/")]
 async fn create(form: web::Form<UrlFormData>) -> impl Responder {
-    form.url.to_owned()
+    let fingerprint = Sha256::digest(form.url.to_owned());
+    let hash = bs58::encode(fingerprint);
+    hash.into_string()
 }
 
 #[actix_web::main]
