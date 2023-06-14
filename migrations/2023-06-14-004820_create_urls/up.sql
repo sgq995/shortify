@@ -1,0 +1,6 @@
+-- Your SQL goes here
+CREATE TABLE urls (
+  id INTEGER NOT NULL PRIMARY KEY,
+  hash VARCHAR(8) NOT NULL,
+  url VARCHAR NOT NULL
+)
