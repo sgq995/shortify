@@ -1,9 +1,10 @@
 use actix_web::{get, post, web, App, HttpServer, Responder, Result};
-use diesel::{prelude::*, sqlite::SqliteConnection};
-use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::env;
+
+pub mod database;
+pub mod models;
+pub mod schema;
 
 #[derive(Serialize)]
 struct Helthcheck {
@@ -34,14 +35,15 @@ async fn create(form: web::Form<UrlFormData>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    dotenv().ok();
+    let pool = database::connect();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let sqlite_connection = SqliteConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
-
-    HttpServer::new(|| App::new().service(healthcheck).service(create))
-        .bind(("127.0.0.1", 5000))?
-        .run()
-        .await
+    HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .service(healthcheck)
+            .service(create)
+    })
+    .bind(("127.0.0.1", 5000))?
+    .run()
+    .await
 }
