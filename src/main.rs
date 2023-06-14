@@ -25,7 +25,8 @@ struct UrlFormData {
 async fn create(form: web::Form<UrlFormData>) -> impl Responder {
     let fingerprint = Sha256::digest(form.url.to_owned());
     let hash = bs58::encode(fingerprint);
-    hash.into_string()
+    let hash = hash.into_string();
+    hash[0..8].to_owned()
 }
 
 #[actix_web::main]
