@@ -14,6 +14,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(pool.clone()))
             .service(routes::healthcheck)
+            .service(routes::read)
             .service(routes::create)
     })
     .bind(("127.0.0.1", 5000))?

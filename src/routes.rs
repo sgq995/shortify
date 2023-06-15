@@ -30,6 +30,25 @@ async fn healthcheck() -> Result<impl Responder> {
     }))
 }
 
+#[get("/{hash}")]
+async fn read(
+    pool: web::Data<database::DatabasePool>,
+    path: web::Path<String>,
+) -> actix_web::Result<impl Responder> {
+    let hash = path.into_inner();
+    let created_url = web::block(move || {
+        let mut conn = pool
+            .get()
+            .expect("Couldn't get database connection from pool");
+
+        actions::select_url(&mut conn, hash)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorNotFound)?;
+
+    Ok(web::Redirect::to(created_url.url).permanent())
+}
+
 #[post("/")]
 async fn create(
     pool: web::Data<database::DatabasePool>,
